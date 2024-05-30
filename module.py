@@ -1,6 +1,6 @@
 import asyncio
 import random
-from telethon import TelegramClient, events, functions, types
+from telethon import TelegramClient, events, functions
 
 api_id = 8818391
 api_hash = '7c53af69fba665f36e83fdc76b8631f1'
@@ -32,14 +32,14 @@ async def fake_typing(event):
     fake_typing_running = True
     while fake_typing_running:
         async with client.action(event.chat_id, 'typing'):
-            await asyncio.sleep(2)  # Lebih sering memperbarui untuk memastikan status tetap terlihat
+            await asyncio.sleep(2)
 
 async def fake_playing(event):
     global fake_playing_running
     fake_playing_running = True
     while fake_playing_running:
         async with client.action(event.chat_id, 'playing'):
-            await asyncio.sleep(2)  # Lebih sering memperbarui untuk memastikan status tetap terlihat
+            await asyncio.sleep(2)
 
 @client.on(events.NewMessage(pattern='.help'))
 async def help(event):
@@ -92,6 +92,9 @@ async def help(event):
         "**.join <username grup/link grup>**\n"
         "Bergabung ke grup berdasarkan username atau tautan\n"
         "Contoh penggunaan: `.join @nama_grup` atau `.join https://t.me/nama_grup`"
+        "**.purgeall**\n"
+        "Menghapus seluruh chat di grup\n"
+        "Contoh penggunaan: `.purgeall`"
     )
     await event.respond(help_message)
 
@@ -302,6 +305,11 @@ async def join(event):
     except Exception as e:
         await event.respond(f'Error joining {link_or_username}: {str(e)}')
 
-print("Bot is running...")
-client.start(phone=phone_number)
+@client.on(events.NewMessage(pattern='.purgeall'))
+async def purge_all(event):
+    async for message in client.iter_messages(event.chat_id):
+        await message.delete()
+    await event.respond('Purged all messages.')
+
+client.start()
 client.run_until_disconnected()
